@@ -23,32 +23,42 @@ const getTasks = async (req, res) => {
     const { id: taskID } = req.params;
     const taskById = await Task.findOne({ _id: taskID });
 
-    if (!taskById) {
-      return res.status(404).json({ msg: `This task is not exist: ${taskID}` });
-    }
-
     res.status(200).json({ taskById });
   } catch (err) {
     res.status(500).json({ msg: err });
   }
 };
 
-const updateTasks = (req, res) => {
-  res.send('Update tasks');
+const updateTasks = async (req, res) => {
+  try {
+    const { id: taskID } = req.params;
+    const updatedTask = await Task.findOneAndUpdate({ _id: taskID }, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedTask) {
+      return res.status(404).json({ msg: `This task is not exist: ${taskID}` });
+    }
+
+    res.status(200).json({ updatedTask });
+  } catch (err) {
+    res.status(500).json({ msg: err });
+  }
 };
 
 const deleteTasks = async (req, res) => {
   try {
     const { id: taskID } = req.params;
-    const taskById = await Task.findOneAndDelete({ _id: taskID });
+    const deletedTask = await Task.findOneAndDelete({ _id: taskID });
 
-    if (!taskById) {
+    if (!deletedTask) {
       return res
         .status(404)
         .json({ msg: `This task is already deleted : ${taskID}` });
     }
 
-    res.status(200).json({ taskById });
+    res.status(200).json({ deletedTask });
   } catch (err) {
     res.status(500).json({ msg: err });
   }
