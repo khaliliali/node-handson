@@ -21,9 +21,15 @@ const createTask = async (req, res) => {
 const getTasks = async (req, res) => {
   try {
     const { id: taskID } = req.params;
-    const taskById = await Task.findOne({ _id: taskID });
+    const task = await Task.findOne({ _id: taskID });
 
-    res.status(200).json({ taskById });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ msg: `This task is already deleted : ${taskID}` });
+    }
+
+    res.status(200).json({ task });
   } catch (err) {
     res.status(500).json({ msg: err });
   }
@@ -32,16 +38,18 @@ const getTasks = async (req, res) => {
 const updateTasks = async (req, res) => {
   try {
     const { id: taskID } = req.params;
-    const updatedTask = await Task.findOneAndUpdate({ _id: taskID }, req.body, {
+    const task = await Task.findOneAndUpdate({ _id: taskID }, req.body, {
       new: true,
       runValidators: true,
     });
 
-    if (!updatedTask) {
-      return res.status(404).json({ msg: `This task is not exist: ${taskID}` });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ msg: `This task is already deleted : ${taskID}` });
     }
 
-    res.status(200).json({ updatedTask });
+    res.status(200).json({ task });
   } catch (err) {
     res.status(500).json({ msg: err });
   }
@@ -50,15 +58,15 @@ const updateTasks = async (req, res) => {
 const deleteTasks = async (req, res) => {
   try {
     const { id: taskID } = req.params;
-    const deletedTask = await Task.findOneAndDelete({ _id: taskID });
+    const task = await Task.findOneAndDelete({ _id: taskID });
 
-    if (!deletedTask) {
+    if (!task) {
       return res
         .status(404)
         .json({ msg: `This task is already deleted : ${taskID}` });
     }
 
-    res.status(200).json({ deletedTask });
+    res.status(200).json({ task });
   } catch (err) {
     res.status(500).json({ msg: err });
   }
