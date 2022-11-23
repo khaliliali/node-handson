@@ -1,76 +1,53 @@
 const Task = require('../models/task');
+const asyncWrapper = require('./../middleware/async');
+const { createCustomError } = require('../errors/custom-error');
 
-const getAllTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find({});
-    res.status(200).json({ tasks: tasks });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-  }
-};
+const getAllTasks = asyncWrapper(async (req, res) => {
+  const tasks = await Task.find({});
+  res.status(200).json({ tasks: tasks });
+});
 
-const createTask = async (req, res) => {
-  try {
-    const task = await Task.create(req.body);
-    res.status(201).json({ task });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-  }
-};
+const createTask = asyncWrapper(async (req, res) => {
+  const task = await Task.create(req.body);
+  res.status(201).json({ task });
+});
 
-const getTasks = async (req, res) => {
-  try {
-    const { id: taskID } = req.params;
-    const task = await Task.findOne({ _id: taskID });
+const getTasks = asyncWrapper(async (req, res) => {
+  const { id: taskID } = req.params;
+  const task = await Task.findOne({ _id: taskID });
 
-    if (!task) {
-      return res
-        .status(404)
-        .json({ msg: `This task is already deleted : ${taskID}` });
-    }
+  if (!task)
+    return next(createCustomError(`There is no task with id: ${taskID}`, 404));
 
-    res.status(200).json({ task });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-  }
-};
+  res.status(200).json({ task });
+});
 
-const updateTasks = async (req, res) => {
-  try {
-    const { id: taskID } = req.params;
-    const task = await Task.findOneAndUpdate({ _id: taskID }, req.body, {
-      new: true,
-      runValidators: true,
-    });
+const updateTasks = asyncWrapper(async (req, res) => {
+  const { id: taskID } = req.params;
+  const task = await Task.findOneAndUpdate({ _id: taskID }, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
-    if (!task) {
-      return res
-        .status(404)
-        .json({ msg: `This task is already deleted : ${taskID}` });
-    }
+  if (!task)
+    return next(
+      createCustomError(`There is no task to update with id: ${taskID}`, 404)
+    );
 
-    res.status(200).json({ task });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-  }
-};
+  res.status(200).json({ task });
+});
 
-const deleteTasks = async (req, res) => {
-  try {
-    const { id: taskID } = req.params;
-    const task = await Task.findOneAndDelete({ _id: taskID });
+const deleteTasks = asyncWrapper(async (req, res) => {
+  const { id: taskID } = req.params;
+  const task = await Task.findOneAndDelete({ _id: taskID });
 
-    if (!task) {
-      return res
-        .status(404)
-        .json({ msg: `This task is already deleted : ${taskID}` });
-    }
+  if (!task)
+    return next(
+      createCustomError(`This task is already deleted : ${taskID}`, 404)
+    );
 
-    res.status(200).json({ task });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-  }
-};
+  res.status(200).json({ task });
+});
 
 module.exports = {
   getAllTasks,
